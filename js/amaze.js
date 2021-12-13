@@ -1,5 +1,5 @@
 //a few globals
-var dimensions = 50;
+var dimensions = 20;
 var pixels;
 var cells;
 var start;
