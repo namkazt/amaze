@@ -28,7 +28,7 @@ var draw = function () {
   context.strokeStyle = 'white';
   context.lineCap = 'square';
   context.lineJoin = 'miter';
-  context.lineWidth = 1.75;
+  context.lineWidth = .75;
   cells.forEach(function(column, x) {
     column.forEach(function(row, y) {
       context.beginPath();
