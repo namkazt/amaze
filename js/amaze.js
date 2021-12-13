@@ -1,5 +1,5 @@
 //a few globals
-var dimensions = 35;
+var dimensions = 50;
 var pixels;
 var cells;
 var start;
@@ -28,7 +28,7 @@ var draw = function () {
   context.strokeStyle = 'white';
   context.lineCap = 'square';
   context.lineJoin = 'miter';
-  context.lineWidth = .75;
+  context.lineWidth = 1.75;
   cells.forEach(function(column, x) {
     column.forEach(function(row, y) {
       context.beginPath();
