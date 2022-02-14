@@ -5,105 +5,16 @@ var cells;
 var start;
 var end;
 var path;
+var winning = false;
 
 function round(value) {
   return (value + 0.5) | 0;
 }
 
-//show the maze
-var draw = function () {
-  var canvas = document.getElementById("maze");
-  var context = canvas.getContext("2d");
-  canvas.width = window.innerWidth;
-  canvas.height = window.innerHeight;
-
-  //fill
-  context.clearRect(0, 0, canvas.width, canvas.height);
-  context.fillStyle = "black";
-  context.fillRect(0, 0, canvas.width, canvas.height);
-
-  //draw the maze
-  pixels = Math.min(canvas.width, canvas.height);
-  var scale = pixels / dimensions;
-  var line = function (x1, y1, x2, y2) {
-    context.moveTo(x1 + 0.5, y1 + 0.5);
-    context.lineTo(x2 + 0.5, y2 + 0.5);
-  };
-  context.scale(scale, scale);
-  context.strokeStyle = "white";
-  context.lineCap = "square";
-  context.lineJoin = "miter";
-  context.lineWidth = 0.75;
-  cells.forEach(function (column, x) {
-    column.forEach(function (row, y) {
-      context.beginPath();
-      if (row & 1) line(x, y, x - 1, y);
-      if (row & 2) line(x, y, x + 1, y);
-      if (row & 4) line(x, y, x, y - 1);
-      if (row & 8) line(x, y, x, y + 1);
-      context.stroke();
-      context.closePath;
-    });
-  });
-
-  //draw the destination
-  context.fillStyle = "#44bb77";
-  context.strokeStyle = "#006600";
-  context.lineJoin = "miter";
-  context.lineWidth = 0.15;
-  (function starPath(x, y, n, or, ir) {
-    var rot = -Math.PI / 2;
-    var step = Math.PI / n;
-    context.beginPath();
-    context.moveTo(x, y - or);
-    for (i = 0; i < n; i++) {
-      context.lineTo(x + Math.cos(rot) * or, y + Math.sin(rot) * or);
-      rot += step;
-      context.lineTo(x + Math.cos(rot) * ir, y + Math.sin(rot) * ir);
-      rot += step;
-    }
-    context.lineTo(x, y - or);
-    context.closePath();
-  })(end[0] + 0.5, end[1] + 0.5, 5, 0.33, 0.16);
-  context.stroke();
-  context.fill();
-
-  //draw the path
-  if (path.length) {
-    context.strokeStyle = "#ffdddd";
-    context.lineCap = "round";
-    context.lineJoin = "round";
-    context.lineWidth = 0.5;
-    context.beginPath();
-    context.moveTo(path[0][0] + 0.5, path[0][1] + 0.5);
-    path.forEach(function (pt) {
-      context.lineTo(pt[0] + 0.5, pt[1] + 0.5);
-    });
-    context.lineTo(start[0] + 0.5, start[1] + 0.5);
-    context.stroke();
-    context.closePath();
-  }
-
-  //draw the current position
-  context.fillStyle = "#6699cc";
-  context.strokeStyle = "#003399";
-  context.lineJoin = "miter";
-  context.lineWidth = 0.15;
-  context.beginPath();
-  context.arc(start[0] + 0.5, start[1] + 0.5, 0.25, 0, 2 * Math.PI);
-  context.closePath();
-  context.stroke();
-  context.fill();
-
-  //did you win
-  if (start[0] == end[0] && start[1] == end[1]) {
-    alert("You Won!");
-    reset();
-  }
-};
-
 //initialize a new maze
 var reset = function () {
+  winning = false;
+  winPopup.visible = false;
   //clear the maze
   cells = [];
   for (var x = 0; x < dimensions; x++) {
@@ -177,8 +88,9 @@ var reset = function () {
   //(function depth_first_backtrack(x, y){
   //})(0,0);
 
-  //show it
-  draw();
+  // draw
+  drawMaze();
+  drawTarget();
 };
 
 //show the solution to the maze
@@ -205,18 +117,19 @@ function move(x, y) {
       path.pop();
     else path.push(start);
     start = [x, y];
-    draw();
   }
 }
 
 //move around the maze with arrow keys
-var onKeyPress = function (e) {
+var onKeyPress = function (evt) {
+  const e = evt.data.originalEvent;
   if (e.keyCode > 36 && e.keyCode < 41)
     move(start[0] + ((e.keyCode - 38) % 2), start[1] + ((e.keyCode - 39) % 2));
 };
 
 //move around the maze with finger or mouse
-var onHover = function (e) {
+var onHover = function (evt) {
+  const e = evt.data.originalEvent;
   //touch
   if (e.changedTouches !== undefined) {
     for (var i = 0; i < e.changedTouches.length; i++)
@@ -232,13 +145,204 @@ var onHover = function (e) {
     );
 };
 
-//capture interaction
-var canvas = document.getElementById("maze");
-canvas.addEventListener("keypress", onKeyPress);
-canvas.addEventListener("touchstart", onHover, false);
-canvas.addEventListener("touchmove", onHover, false);
-canvas.addEventListener("mousemove", onHover, false);
+// The application will create a renderer using WebGL, if possible,
+// with a fallback to a canvas render. It will also setup the ticker
+// and the root stage PIXI.Container
+const app = new PIXI.Application({
+  width: window.innerWidth,
+  height: window.innerHeight,
+  backgroundColor: 0xffffff,
+  resolution: window.devicePixelRatio || 1,
+});
+document.body.appendChild(app.view);
 
-//capture screen updates
-window.onload = reset;
-window.onresize = draw;
+pixels = Math.min(app.renderer.width, app.renderer.height);
+dimensions = 15;
+var scale = pixels / dimensions;
+const container = new PIXI.Container();
+container.scale.set(scale, scale);
+app.stage.addChild(container);
+
+// load the texture we need
+const texA = PIXI.Texture.from("res/a.png");
+const texB = PIXI.Texture.from("res/b.png");
+const texC = PIXI.Texture.from("res/c.png");
+
+// init maze
+//let mazeStartX = app.renderer.width / 2 - pixels / 2;
+let maze = new PIXI.Graphics();
+container.addChild(maze);
+
+// init target
+const target = new PIXI.Sprite(texA);
+target.width = 1.2;
+target.height = 1.2;
+target.anchor.x = 0.5;
+target.anchor.y = 0.5;
+container.addChild(target);
+
+// init player path
+let playerPath = new PIXI.Graphics();
+container.addChild(playerPath);
+
+// init player
+let player = new PIXI.Graphics();
+player.scale.set(1 / scale, 1 / scale);
+container.addChild(player);
+
+// init player
+let winPopup = new PIXI.Graphics();
+const style = new PIXI.TextStyle({
+  fontFamily: "Arial",
+  fontSize: 36,
+  fontStyle: "italic",
+  fontWeight: "bold",
+  fill: ["#ffffff", "#00ff99"], // gradient
+  stroke: "#4a1850",
+  strokeThickness: 5,
+  dropShadow: true,
+  dropShadowColor: "#000000",
+  dropShadowBlur: 4,
+  dropShadowAngle: Math.PI / 6,
+  dropShadowDistance: 6,
+  wordWrap: true,
+  wordWrapWidth: 440,
+  lineJoin: "round",
+});
+const richText = new PIXI.Text("Congratulation!!!", style);
+richText.x = 5;
+richText.y = 2.8;
+richText.scale.set(1 / scale, 1 / scale);
+winPopup.addChild(richText);
+
+// init target
+const logo = new PIXI.Sprite(texB);
+logo.scale.set(1 / scale, 1 / scale);
+logo.width = 2265 / scale / 6;
+logo.height = 945 / scale / 6;
+logo.anchor.x = 0.5;
+logo.anchor.y = 0.5;
+logo.x = 7.5;
+logo.y = 5;
+winPopup.addChild(logo);
+
+// init target
+const resetButton = new PIXI.Sprite(texC);
+resetButton.scale.set(1 / scale, 1 / scale);
+resetButton.width = 398 / scale / 2;
+resetButton.height = 218 / scale / 2;
+resetButton.anchor.x = 0.5;
+resetButton.anchor.y = 0.5;
+resetButton.x = 7.5;
+resetButton.y = 6.6;
+resetButton.interactive = true;
+resetButton.on("pointerdown", reset);
+winPopup.addChild(resetButton);
+container.addChild(winPopup);
+winPopup.visible = false;
+// init maze
+reset();
+
+function drawTarget() {
+  target.x = end[0] + 0.5;
+  target.y = end[1] + 0.5;
+}
+
+function drawMaze() {
+  maze.clear();
+  maze.lineStyle({
+    width: 0.75,
+    color: 0x91bcff,
+    cap: PIXI.LINE_CAP.SQUARE,
+    join: PIXI.LINE_JOIN.MITER,
+  });
+  var line = function (x1, y1, x2, y2) {
+    maze.moveTo(x1 + 0.5, y1 + 0.5).lineTo(x2 + 0.5, y2 + 0.5);
+  };
+  cells.forEach(function (column, x) {
+    column.forEach(function (row, y) {
+      if (row & 1) line(x, y, x - 1, y);
+      if (row & 2) line(x, y, x + 1, y);
+      if (row & 4) line(x, y, x, y - 1);
+      if (row & 8) line(x, y, x, y + 1);
+    });
+  });
+}
+
+function drawPlayer() {
+  player.clear();
+  player.lineStyle({
+    width: 0.15 * scale,
+    color: 0x003399,
+    join: PIXI.LINE_JOIN.MITER,
+  });
+  player.beginFill(0x6699cc, 1);
+  player.drawCircle(
+    (start[0] + 0.5) * scale,
+    (start[1] + 0.5) * scale,
+    0.25 * scale
+  );
+  player.endFill();
+
+  maze.endFill();
+}
+
+function drawPlayerPath() {
+  if (path.length) {
+    playerPath.clear();
+    playerPath.lineStyle({
+      width: 0.5,
+      color: 0xf0fc7c,
+      cap: PIXI.LINE_CAP.ROUND,
+      join: PIXI.LINE_JOIN.ROUND,
+    });
+
+    playerPath.moveTo(path[0][0] + 0.5, path[0][1] + 0.5);
+    path.forEach(function (pt) {
+      playerPath.lineTo(pt[0] + 0.5, pt[1] + 0.5);
+    });
+    playerPath.lineTo(start[0] + 0.5, start[1] + 0.5);
+  } else {
+    playerPath.clear();
+  }
+}
+
+function drawWinPopup() {
+  winPopup.clear();
+  winPopup.lineStyle({
+    width: 0.2,
+    color: 0xe6e6e6,
+    cap: PIXI.LINE_CAP.ROUND,
+    join: PIXI.LINE_JOIN.ROUND,
+  });
+  winPopup.beginFill(0xffffff);
+  winPopup.drawRect(2.5, 2.5, 10, 5);
+  winPopup.endFill();
+}
+
+// canvas.addEventListener("keypress", onKeyPress);
+// canvas.addEventListener("touchstart", onHover, false);
+// canvas.addEventListener("touchmove", onHover, false);
+// canvas.addEventListener("mousemove", onHover, false);
+container.interactive = true;
+container.on("touchstart", onHover);
+container.on("touchmove", onHover);
+container.on("mousemove", onHover);
+
+// Listen for frame updates
+app.ticker.add(() => {
+  drawPlayer();
+  drawPlayerPath();
+
+  // each frame we spin the bunny around a bit
+  target.rotation += 0.01;
+
+  if (winning) {
+    drawWinPopup();
+  }
+  //did you win
+  if (start[0] == end[0] && start[1] == end[1]) {
+    winning = true;
+    winPopup.visible = true;
+  }
+});
