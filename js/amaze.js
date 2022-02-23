@@ -156,7 +156,7 @@ const app = new PIXI.Application({
 document.body.appendChild(app.view);
 
 pixels = Math.min(app.renderer.width, app.renderer.height);
-dimensions = 15;
+dimensions = 10;
 var scale = pixels / dimensions;
 const container = new PIXI.Container();
 container.scale.set(scale, scale);
@@ -172,14 +172,6 @@ const texC = PIXI.Texture.from("res/c.png");
 let maze = new PIXI.Graphics();
 container.addChild(maze);
 
-// init target
-const target = new PIXI.Sprite(texA);
-target.width = 1.2;
-target.height = 1.2;
-target.anchor.x = 0.5;
-target.anchor.y = 0.5;
-container.addChild(target);
-
 // init player path
 let playerPath = new PIXI.Graphics();
 container.addChild(playerPath);
@@ -188,6 +180,14 @@ container.addChild(playerPath);
 let player = new PIXI.Graphics();
 player.scale.set(1 / scale, 1 / scale);
 container.addChild(player);
+
+// init target
+const target = new PIXI.Sprite(texA);
+target.width = 1.2;
+target.height = 1.2;
+target.anchor.x = 0.5;
+target.anchor.y = 0.5;
+container.addChild(target);
 
 // init player
 let winPopup = new PIXI.Graphics();
@@ -209,7 +209,7 @@ const style = new PIXI.TextStyle({
   lineJoin: "round",
 });
 const richText = new PIXI.Text("Congratulation!!!", style);
-richText.x = 5;
+richText.x = 3.5;
 richText.y = 2.8;
 richText.scale.set(1 / scale, 1 / scale);
 winPopup.addChild(richText);
@@ -221,7 +221,7 @@ logo.width = 2265 / scale / 6;
 logo.height = 945 / scale / 6;
 logo.anchor.x = 0.5;
 logo.anchor.y = 0.5;
-logo.x = 7.5;
+logo.x = 5;
 logo.y = 5;
 winPopup.addChild(logo);
 
@@ -232,7 +232,7 @@ resetButton.width = 398 / scale / 2;
 resetButton.height = 218 / scale / 2;
 resetButton.anchor.x = 0.5;
 resetButton.anchor.y = 0.5;
-resetButton.x = 7.5;
+resetButton.x = 5;
 resetButton.y = 6.6;
 resetButton.interactive = true;
 resetButton.on("pointerdown", reset);
@@ -243,8 +243,8 @@ winPopup.visible = false;
 reset();
 
 function drawTarget() {
-  target.x = end[0] + 0.5;
-  target.y = end[1] + 0.5;
+  target.x = start[0] + 0.5;
+  target.y = start[1] + 0.5;
 }
 
 function drawMaze() {
@@ -266,6 +266,7 @@ function drawMaze() {
       if (row & 8) line(x, y, x, y + 1);
     });
   });
+  maze.endFill();
 }
 
 function drawPlayer() {
@@ -277,13 +278,11 @@ function drawPlayer() {
   });
   player.beginFill(0x6699cc, 1);
   player.drawCircle(
-    (start[0] + 0.5) * scale,
-    (start[1] + 0.5) * scale,
+    (end[0] + 0.5) * scale,
+    (end[1] + 0.5) * scale,
     0.25 * scale
   );
   player.endFill();
-
-  maze.endFill();
 }
 
 function drawPlayerPath() {
@@ -315,7 +314,7 @@ function drawWinPopup() {
     join: PIXI.LINE_JOIN.ROUND,
   });
   winPopup.beginFill(0xffffff);
-  winPopup.drawRect(2.5, 2.5, 10, 5);
+  winPopup.drawRect(1.5, 2.5, 7, 5);
   winPopup.endFill();
 }
 
@@ -332,6 +331,7 @@ container.on("mousemove", onHover);
 app.ticker.add(() => {
   drawPlayer();
   drawPlayerPath();
+  drawTarget();
 
   // each frame we spin the bunny around a bit
   target.rotation += 0.01;
