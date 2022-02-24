@@ -191,9 +191,10 @@ container.addChild(target);
 
 const styleLogo = new PIXI.TextStyle({
   fontFamily: "Arial",
-  fontSize: 36,
+  fontSize: 54,
   fontStyle: "italic",
   fontWeight: "bold",
+  align: "center",
   fill: ["#ffffff", "#00ff99"], // gradient
   stroke: "#4a1850",
   strokeThickness: 5,
@@ -203,14 +204,14 @@ const styleLogo = new PIXI.TextStyle({
   dropShadowAngle: Math.PI / 6,
   dropShadowDistance: 6,
   wordWrap: true,
-  wordWrapWidth: 1000,
+  wordWrapWidth: 650,
   lineJoin: "round",
 });
 const logoText = new PIXI.Text(
   "Vanilla flavored tablet is Pleasant to Patient",
   styleLogo
 );
-logoText.x = 1;
+logoText.x = 1.5;
 logoText.y = 10;
 logoText.scale.set(1 / scale, 1 / scale);
 container.addChild(logoText);
