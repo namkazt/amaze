@@ -198,10 +198,10 @@ var h = 5;
 
 const styleLogo = new PIXI.TextStyle({
   fontFamily: "Arial",
-  fontSize: 54,
+  fontSize: 38,
   fontStyle: "italic",
   fontWeight: "bold",
-  align: "center",
+  align: "left",
   fill: ["#ffffff", "#00ff99"], // gradient
   stroke: "#4a1850",
   strokeThickness: 5,
@@ -211,17 +211,27 @@ const styleLogo = new PIXI.TextStyle({
   dropShadowAngle: Math.PI / 6,
   dropShadowDistance: 6,
   wordWrap: true,
-  wordWrapWidth: 750,
+  wordWrapWidth: 600,
   lineJoin: "round",
 });
 const logoText = new PIXI.Text(
   "Vanilla flavored small tablet for patient compliance",
   styleLogo
 );
-logoText.x = dimensionX / 2 - 750 / scaleX / 2;
+logoText.x = dimensionX - 600 / scaleX;
 logoText.y = dimensionY + 0.2;
 logoText.scale.set(1 / scaleX, 1 / scaleY);
 container.addChild(logoText);
+
+const logoOut = new PIXI.Sprite(texB);
+logoOut.scale.set(1 / scaleX, 1 / scaleY);
+logoOut.width = 2265 / scaleX / 7;
+logoOut.height = 945 / scaleY / 7;
+logoOut.anchor.x = 0.5;
+logoOut.anchor.y = 0.5;
+logoOut.x = 1.4;
+logoOut.y = dimensionY + 0.6;
+container.addChild(logoOut);
 
 // init player\
 
