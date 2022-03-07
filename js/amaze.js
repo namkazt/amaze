@@ -1,6 +1,9 @@
 //a few globals
-var dimensions = 15;
-var pixels;
+
+var dimensionX = 8;
+var dimensionY = 16;
+var pixelX;
+var pixelY;
 var cells;
 var start;
 var end;
@@ -17,9 +20,9 @@ var reset = function () {
   winPopup.visible = false;
   //clear the maze
   cells = [];
-  for (var x = 0; x < dimensions; x++) {
+  for (var x = 0; x < dimensionX; x++) {
     cells.push([]);
-    for (var y = 0; y < dimensions; y++) cells[x].push(0);
+    for (var y = 0; y < dimensionY; y++) cells[x].push(0);
   }
 
   //get the shared walls between a cell and its neighbors
@@ -33,9 +36,9 @@ var reset = function () {
     ].forEach(function (n) {
       if (
         n[0] > -1 &&
-        n[0] < dimensions &&
+        n[0] < dimensionX &&
         n[1] > -1 &&
-        n[1] < dimensions &&
+        n[1] < dimensionY &&
         cells[n[0]][n[1]] == 0
       )
         walls.push([[x, y], n]);
@@ -45,8 +48,8 @@ var reset = function () {
 
   //generate the maze starting at a random set of walls
   var walls = getWalls(
-    round(Math.random() * (dimensions - 1)),
-    round(Math.random() * (dimensions - 1))
+    round(Math.random() * (dimensionX - 1)),
+    round(Math.random() * (dimensionY - 1))
   );
   while (walls.length) {
     //randomly pick a wall
@@ -66,21 +69,21 @@ var reset = function () {
   //randomly start along the perimeter of the maze and end on the opposite side
   if (round(Math.random())) {
     start = [
-      round(Math.random()) * (dimensions - 1),
-      round(Math.random() * (dimensions - 1)),
+      round(Math.random()) * (dimensionX - 1),
+      round(Math.random() * (dimensionY - 1)),
     ];
     end = [
-      start[0] ? 0 : dimensions - 1,
-      round(Math.random() * (dimensions - 1)),
+      start[0] ? 0 : dimensionX - 1,
+      round(Math.random() * (dimensionY - 1)),
     ];
   } else {
     start = [
-      round(Math.random() * (dimensions - 1)),
-      round(Math.random()) * (dimensions - 1),
+      round(Math.random() * (dimensionX - 1)),
+      round(Math.random()) * (dimensionY - 1),
     ];
     end = [
-      round(Math.random() * (dimensions - 1)),
-      start[1] ? 0 : dimensions - 1,
+      round(Math.random() * (dimensionX - 1)),
+      start[1] ? 0 : dimensionY - 1,
     ];
   }
   path = [];
@@ -134,14 +137,14 @@ var onHover = function (evt) {
   if (e.changedTouches !== undefined) {
     for (var i = 0; i < e.changedTouches.length; i++)
       move(
-        ((e.changedTouches[i].pageX / pixels) * dimensions) | 0,
-        ((e.changedTouches[i].pageY / pixels) * dimensions) | 0
+        ((e.changedTouches[i].pageX / pixelX) * dimensionX) | 0,
+        ((e.changedTouches[i].pageY / pixelY) * dimensionY) | 0
       );
   } //mouse
   else if (e.clientX !== undefined)
     move(
-      ((e.clientX / pixels) * dimensions) | 0,
-      ((e.clientY / pixels) * dimensions) | 0
+      ((e.clientX / pixelX) * dimensionX) | 0,
+      ((e.clientY / pixelY) * dimensionY) | 0
     );
 };
 
@@ -155,11 +158,12 @@ const app = new PIXI.Application({
 });
 document.body.appendChild(app.view);
 
-pixels = Math.min(app.renderer.width, app.renderer.height);
-dimensions = 10;
-var scale = pixels / dimensions;
+pixelX = app.renderer.width;
+pixelY = app.renderer.height - 200;
+var scaleX = pixelX / dimensionX;
+var scaleY = pixelY / dimensionY;
 const container = new PIXI.Container();
-container.scale.set(scale, scale);
+container.scale.set(scaleX, scaleY);
 app.stage.addChild(container);
 
 // load the texture we need
@@ -178,7 +182,7 @@ container.addChild(playerPath);
 
 // init player
 let player = new PIXI.Graphics();
-player.scale.set(1 / scale, 1 / scale);
+player.scale.set(1 / scaleX, 1 / scaleY);
 container.addChild(player);
 
 // init target
@@ -188,6 +192,9 @@ target.height = 1.2;
 target.anchor.x = 0.5;
 target.anchor.y = 0.5;
 container.addChild(target);
+
+var w = dimensionX - 2;
+var h = 5;
 
 const styleLogo = new PIXI.TextStyle({
   fontFamily: "Arial",
@@ -204,19 +211,20 @@ const styleLogo = new PIXI.TextStyle({
   dropShadowAngle: Math.PI / 6,
   dropShadowDistance: 6,
   wordWrap: true,
-  wordWrapWidth: 650,
+  wordWrapWidth: 750,
   lineJoin: "round",
 });
 const logoText = new PIXI.Text(
-  "Vanilla flavored tablet is Pleasant to Patient",
+  "Vanilla flavored small tablet for patient compliance",
   styleLogo
 );
-logoText.x = 1.5;
-logoText.y = 10;
-logoText.scale.set(1 / scale, 1 / scale);
+logoText.x = dimensionX / 2 - 750 / scaleX / 2;
+logoText.y = dimensionY + 0.2;
+logoText.scale.set(1 / scaleX, 1 / scaleY);
 container.addChild(logoText);
 
-// init player
+// init player\
+
 let winPopup = new PIXI.Graphics();
 const style = new PIXI.TextStyle({
   fontFamily: "Arial",
@@ -236,31 +244,31 @@ const style = new PIXI.TextStyle({
   lineJoin: "round",
 });
 const richText = new PIXI.Text("Congratulation!!!", style);
-richText.x = 3.5;
-richText.y = 2.8;
-richText.scale.set(1 / scale, 1 / scale);
+richText.x = dimensionX / 2 - w / 2 + w / 2 - 1.3;
+richText.y = dimensionY / 2 - h / 2 + 0.3;
+richText.scale.set(1 / scaleX, 1 / scaleY);
 winPopup.addChild(richText);
 
 // init target
 const logo = new PIXI.Sprite(texB);
-logo.scale.set(1 / scale, 1 / scale);
-logo.width = 2265 / scale / 6;
-logo.height = 945 / scale / 6;
+logo.scale.set(1 / scaleX, 1 / scaleY);
+logo.width = 2265 / scaleX / 6;
+logo.height = 945 / scaleY / 6;
 logo.anchor.x = 0.5;
 logo.anchor.y = 0.5;
-logo.x = 5;
-logo.y = 5;
+logo.x = dimensionX / 2 - w / 2 + w / 2;
+logo.y = dimensionY / 2 - h / 2 + 2.3;
 winPopup.addChild(logo);
 
 // init target
 const resetButton = new PIXI.Sprite(texC);
-resetButton.scale.set(1 / scale, 1 / scale);
-resetButton.width = 398 / scale / 2;
-resetButton.height = 218 / scale / 2;
+resetButton.scale.set(1 / scaleX, 1 / scaleY);
+resetButton.width = 398 / scaleX / 2;
+resetButton.height = 218 / scaleY / 2;
 resetButton.anchor.x = 0.5;
 resetButton.anchor.y = 0.5;
-resetButton.x = 5;
-resetButton.y = 6.6;
+resetButton.x = dimensionX / 2 - w / 2 + w / 2;
+resetButton.y = dimensionY / 2 - h / 2 + 4;
 resetButton.interactive = true;
 resetButton.on("pointerdown", reset);
 winPopup.addChild(resetButton);
@@ -299,15 +307,15 @@ function drawMaze() {
 function drawPlayer() {
   player.clear();
   player.lineStyle({
-    width: 0.15 * scale,
+    width: 0.15 * scaleX,
     color: 0x003399,
     join: PIXI.LINE_JOIN.MITER,
   });
   player.beginFill(0x6699cc, 1);
   player.drawCircle(
-    (end[0] + 0.5) * scale,
-    (end[1] + 0.5) * scale,
-    0.25 * scale
+    (end[0] + 0.5) * scaleX,
+    (end[1] + 0.5) * scaleY,
+    0.25 * scaleX
   );
   player.endFill();
 }
@@ -341,7 +349,7 @@ function drawWinPopup() {
     join: PIXI.LINE_JOIN.ROUND,
   });
   winPopup.beginFill(0xffffff);
-  winPopup.drawRect(1.5, 2.5, 7, 5);
+  winPopup.drawRect(dimensionX / 2 - w / 2, dimensionY / 2 - h / 2, w, h);
   winPopup.endFill();
 }
 
@@ -362,7 +370,6 @@ app.ticker.add(() => {
 
   // each frame we spin the bunny around a bit
   target.rotation += 0.01;
-
   if (winning) {
     drawWinPopup();
   }
