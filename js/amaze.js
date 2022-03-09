@@ -364,8 +364,6 @@ app.ticker.add(() => {
 
   // each frame we spin the bunny around a bit
   target.rotation += 0.01;
-  drawWinPopup();
-  winPopup.visible = true;
   if (winning) {
     drawWinPopup();
   }
