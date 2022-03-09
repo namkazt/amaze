@@ -199,17 +199,9 @@ var h = 5;
 const styleLogo = new PIXI.TextStyle({
   fontFamily: "Arial",
   fontSize: 38,
-  fontStyle: "italic",
   fontWeight: "bold",
   align: "left",
-  fill: ["#ffffff", "#00ff99"], // gradient
-  stroke: "#4a1850",
-  strokeThickness: 5,
-  dropShadow: true,
-  dropShadowColor: "#000000",
-  dropShadowBlur: 4,
-  dropShadowAngle: Math.PI / 6,
-  dropShadowDistance: 6,
+  fill: ["#000000"],
   wordWrap: true,
   wordWrapWidth: 600,
   lineJoin: "round",
@@ -239,21 +231,15 @@ let winPopup = new PIXI.Graphics();
 const style = new PIXI.TextStyle({
   fontFamily: "Arial",
   fontSize: 36,
-  fontStyle: "italic",
   fontWeight: "bold",
-  fill: ["#ffffff", "#00ff99"], // gradient
-  stroke: "#4a1850",
-  strokeThickness: 5,
-  dropShadow: true,
-  dropShadowColor: "#000000",
-  dropShadowBlur: 4,
-  dropShadowAngle: Math.PI / 6,
-  dropShadowDistance: 6,
+  align: "center",
+  fill: ["#000000"],
   wordWrap: true,
   wordWrapWidth: 440,
   lineJoin: "round",
 });
 const richText = new PIXI.Text("Congratulation!!!", style);
+richText.width = 440 / scaleX / 7;
 richText.x = dimensionX / 2 - w / 2 + w / 2 - 1.3;
 richText.y = dimensionY / 2 - h / 2 + 0.3;
 richText.scale.set(1 / scaleX, 1 / scaleY);
@@ -380,6 +366,8 @@ app.ticker.add(() => {
 
   // each frame we spin the bunny around a bit
   target.rotation += 0.01;
+  drawWinPopup();
+  winPopup.visible = true;
   if (winning) {
     drawWinPopup();
   }
