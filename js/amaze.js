@@ -234,13 +234,11 @@ const style = new PIXI.TextStyle({
   fontWeight: "bold",
   align: "center",
   fill: ["#000000"],
-  wordWrap: true,
-  wordWrapWidth: 440,
   lineJoin: "round",
 });
 const richText = new PIXI.Text("Congratulation!!!", style);
-richText.width = 440 / scaleX / 7;
-richText.x = dimensionX / 2 - w / 2 + w / 2 - 1.3;
+richText.width = 250 / scaleX;
+richText.x = dimensionX / 2 - richText.width / 2;
 richText.y = dimensionY / 2 - h / 2 + 0.3;
 richText.scale.set(1 / scaleX, 1 / scaleY);
 winPopup.addChild(richText);
